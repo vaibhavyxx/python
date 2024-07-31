@@ -58,8 +58,8 @@ crosshair_group.add(crosshair)
 
 #target
 targets_group = pygame.sprite.Group()
-timer =60
-timer -= pygame.time.get_ticks()
+start_time = pygame.time.get_ticks()
+total_time = 60*1000
 
 #creates targets 
 def createTargets(num):
@@ -76,9 +76,16 @@ for i in range(5):
     targets_group.add(target)
 
 timer =0
+total_time =60*1000
 #you can't remove from a group directly, you would have to add it to a list and then access that value
 while True:
-    timer = pygame.time.get_ticks()
+    current_time = pygame.time.get_ticks()
+    time_left = current_time - start_time
+    total_time -= time_left
+
+    if total_time ==0:
+        break
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -98,7 +105,7 @@ while True:
                 createTargets(1)
 
     screen.blit(background,(0,0))
-    time_text = FONT.render(f"{timer // 1000} seconds left", True, FONT_COLOR)
+    time_text = FONT.render(f"{total_time // 1000} seconds left", True, FONT_COLOR)
     screen.blit(time_text, (SCREEN_WIDTH/2, 50))
     target.update()
     targets_group.draw(screen)
@@ -107,3 +114,5 @@ while True:
     crosshair_group.draw(screen)
 
     pygame.display.flip()           #v important updates the screen
+    #v imp to fix the timer issue
+    start_time = current_time
