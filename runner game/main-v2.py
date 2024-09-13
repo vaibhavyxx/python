@@ -11,6 +11,10 @@ pygame.display.set_caption("flappy birds")
 pygame.mouse.set_visible(False)
 clock = pygame.time.Clock()
 start_time = pygame.time.get_ticks()
+scene = "menu"
+FONT_COLOR = (36, 54, 138)
+DISPLAY_FONT = pygame.font.SysFont("Comic Sans", 60, bold=True)
+TEXT_FONT = pygame.font.SysFont("Corbel", 32, bold=False)
 
 #loads all the assets
 bird_fly = []
@@ -22,6 +26,8 @@ plane_fly = []
 plane_fly.append(pygame.image.load("runner game/png/PNG/Plane/Fly (1).png"))
 plane_fly.append(pygame.image.load("runner game/png/PNG/Plane/Fly (2).png"))
 plane_dead = pygame.image.load("runner game/png/PNG/Plane/Dead (1).png")
+button_unclicked = pygame.image.load("runner game/png/buttons/yellow.png")
+button_clicked = pygame.image.load("runner game/png/buttons/green.png")
 
 class Plane(pygame.sprite.Sprite):
     def __init__(self, plane_fly_list, scale, gravity):
@@ -32,8 +38,8 @@ class Plane(pygame.sprite.Sprite):
         self.new_height = scale * self.image.get_height()
         self.image = pygame.transform.scale(self.image, (self.new_width, self.new_height))
         self.rect = self.image.get_rect()
-        self.pos_x = WIDTH/2 - self.image.get_width()/2
-        self.pos_y = HEIGHT/2 - self.image.get_height()/2
+        self.pos_x = WIDTH/2 - self.image.get_width()/2 -50
+        self.pos_y = 50 + self.image.get_height()
         self.rect.topleft = [self.pos_x, self.pos_y]
         self.gravity = gravity
         self.ti = time.time()                           #for movement
@@ -184,6 +190,37 @@ class Bird_Manager(pygame.sprite.Sprite):
     def draw(self, screen):
         self.bird_group.draw(screen)
 
+def draw_menu(screen):
+    #update background
+    screen.fill((193,227,255))
+    text = DISPLAY_FONT.render("Plane Game", True, FONT_COLOR)
+    screen.blit(
+        text, 
+        ((WIDTH/2 - text.get_width()/2), 
+        (200),),
+        )
+    sub_text = TEXT_FONT.render("Press W to make the plane go up and dodge the birds!", True, FONT_COLOR)
+    screen.blit(
+        sub_text,
+        ((WIDTH/2 - sub_text.get_width()/2),
+         (250 + text.get_height()))
+    )
+    sub_text_2 = TEXT_FONT.render("Press ENTER to play!", True, FONT_COLOR)
+    screen.blit(
+        sub_text_2,
+        ((WIDTH/2 - sub_text_2.get_width()/2),
+         (400))
+    )
+
+def draw_end(screen):
+    screen.fill((193,227,255))
+    text = DISPLAY_FONT.render("Press R to Play Again", True, FONT_COLOR)
+    screen.blit(
+        text, 
+        ((WIDTH/2 - text.get_width()/2), 
+        (200),),
+        )
+
 #objects
 cloud_manager = Clouds_Manager("runner game/png/white cloud.png", "runner game/png/grey cloud.png")
 cloud_manager.make_Clouds(WIDTH, HEIGHT, 5)
@@ -196,24 +233,29 @@ cloud_manager.make_Clouds(WIDTH, HEIGHT, 5)
 run = True
 #fills the screen with new clouds after every 2 seconds
 while run:
-    current_time = pygame.time.get_ticks()
-    elapsed_time = current_time - start_time    #gives time in mills
+    if scene == "menu":
+        draw_menu(screen)
+    elif scene == "end":
+        draw_end(screen)
+    elif scene == "game":
+        current_time = pygame.time.get_ticks()
+        elapsed_time = current_time - start_time    #gives time in mills
 
-    if(elapsed_time > 2000):
-        num = random.randrange(0, 5)
-        cloud_manager.make_Clouds(WIDTH, HEIGHT, num)
-        bird_manager.make_Birds(WIDTH, HEIGHT)
-        start_time = current_time
+        if(elapsed_time > 2000):
+            num = random.randrange(0, 5)
+            cloud_manager.make_Clouds(WIDTH, HEIGHT, num)
+            bird_manager.make_Birds(WIDTH, HEIGHT)
+            start_time = current_time
 
-    #update background
-    screen.fill((193,227,255))
+        #update background
+        screen.fill((193,227,255))
 
-    cloud_manager.update()
-    cloud_manager.draw(screen)
-    player_group.update()
-    player_group.draw(screen)
-    bird_manager.update()
-    bird_manager.draw(screen)
+        cloud_manager.update()
+        cloud_manager.draw(screen)
+        player_group.update()
+        player_group.draw(screen)
+        bird_manager.update()
+        bird_manager.draw(screen)
 
     #event handler
     for event in pygame.event.get():
@@ -221,8 +263,17 @@ while run:
             run = False
         
         if pygame.sprite.spritecollide(player, bird_manager.bird_group, False):
-            #run = False
+            scene = "end"
             pass
+
+        
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RETURN and scene == "menu":
+                scene = "game"
+            if event.key == pygame.K_r and scene == "end":
+                scene = "game"
+            if event.key == pygame.K_m and scene == "end":
+                scene = "menu"
             
     pygame.display.update()
 pygame.quit()
